@@ -2,9 +2,23 @@
 #define SIMULATOR_H
 
 /*
-* load dmemin in to a buffer.
+* load dmemin into a buffer.
 */
 void load_initial_memory();
 
+/*
+* load assemly code into a buffer.
+*/
+void load_code();
+
+/*
+* store dmemout in file.
+*/
+void store_memory();
+
+/*
+* run simulator
+*/
+void run();
 
 #endif

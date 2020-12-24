@@ -7,22 +7,9 @@ extern int registers[16];
 extern int io_registers[22];
 extern int memory[MEMORY_SIZE];
 
-int run_cmd(char* cmd, char* immidiate, int PC)
+int execute_cmd(OPcode opcode, int rd, int rs , int rt, int imm, int PC, char *should_exit)
 {
-    int command = (int)strtol(cmd, NULL, 16);
-    int imm = 0;
-    if (immidiate) imm = (int)strtol(immidiate, NULL, 16);
-    return exexute_cmd(command & OPCODE_MASK,
-                       command & RD_MASK,
-                       command & RS_MASK,
-                       command & RT_MASK,
-                       imm,
-                       PC);
-}
-
-
-int exexute_cmd(OPcode opcode, int rd, int rs , int rt, int imm, int PC)
-{
+    int mask;
     registers[IMM] = imm;
     PC++;
     switch(opcode){
@@ -51,7 +38,7 @@ int exexute_cmd(OPcode opcode, int rd, int rs , int rt, int imm, int PC)
             registers[rd] = registers[rs] >> registers[rt];
             break;
         case SRL:
-            int mask = 0xFFFFFFFF << (32-registers[rt]);
+            mask = 0xFFFFFFFF << (32-registers[rt]);
             mask = ~mask;
             registers[rd] = (registers[rs] >> registers[rt]) & mask;
             break;
@@ -78,10 +65,11 @@ int exexute_cmd(OPcode opcode, int rd, int rs , int rt, int imm, int PC)
             PC = registers[rd];
             break;
         case LW:
-            registers[rd] = memory[registers[rt] + registers[rs]];
+            registers[rd] = memory[(registers[rt] + registers[rs]) % MEMORY_SIZE];
             break;
         case SW:
-            memory[registers[rt] + registers[rs]] = registers[rd];
+        printf("storing %d in %d\n", registers[rd],(registers[rt] + registers[rs]) % MEMORY_SIZE);
+            memory[(registers[rt] + registers[rs]) % MEMORY_SIZE] = registers[rd];
             break;
         case RETI:
             PC = io_registers[IRQRETURN];
@@ -95,10 +83,31 @@ int exexute_cmd(OPcode opcode, int rd, int rs , int rt, int imm, int PC)
             break;
         case HALT:
             printf("halt simulator, goodbye\n");
-            exit(0);
+            *should_exit = 1;
             break;
         default:
-            break;//sgwgfqw
+            printf("default opcode\n");
+            break;
     }
     return PC & PC_MASK;
+}
+
+int run_cmd(char* cmd, char* immidiate, int PC, char *should_exit)
+{
+    int command = (int)strtol(cmd, NULL, 16);
+    int imm = 0;
+    // printf("cmd: %s\nimm: %s\nPC: %d\n\n", cmd, immidiate, PC);
+    if (immidiate != NULL) {
+        imm = (int)strtol(immidiate, NULL, 16);
+        PC ++;
+    }
+    return execute_cmd(
+        (command & OPCODE_MASK) >> 12,
+        (command & RD_MASK) >> 8,
+        (command & RS_MASK) >> 4,
+        command & RT_MASK,
+        imm,
+        PC,
+        should_exit
+    );
 }

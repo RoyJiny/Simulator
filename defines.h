@@ -7,7 +7,9 @@
 #define RT_MASK 0x0000F
 #define PC_MASK 0x003FF
 #define MEMORY_SIZE 4096
+#define CODE_SIZE 1024
 #define MEMORY_LINE_SIZE 8
+#define CODE_LINE_SIZE 5
 
 #define IMEMIN "./inputs/imemin.txt"
 #define DMEMIN "./inputs/dmemin.txt"
