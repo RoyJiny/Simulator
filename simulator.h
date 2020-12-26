@@ -12,7 +12,7 @@ void load_initial_memory();
 void load_code();
 
 /*
-* store dmemout in file.
+* store buffer in file dmemout.
 */
 void store_memory();
 

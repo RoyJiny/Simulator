@@ -6,6 +6,7 @@
 extern int registers[16];
 extern int io_registers[22];
 extern int memory[MEMORY_SIZE];
+extern char handling_irq_flag;
 
 int execute_cmd(OPcode opcode, int rd, int rs , int rt, int imm, int PC, char *should_exit)
 {
@@ -73,6 +74,7 @@ int execute_cmd(OPcode opcode, int rd, int rs , int rt, int imm, int PC, char *s
             break;
         case RETI:
             PC = io_registers[IRQRETURN];
+            handling_irq_flag = 0;
             break;
         case IN:
             /*TODO: maybe check the index*/

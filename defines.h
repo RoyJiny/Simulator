@@ -11,10 +11,14 @@
 #define MEMORY_LINE_SIZE 8
 #define CODE_LINE_SIZE 5
 
+/*TODO: change paths*/
 #define IMEMIN "./inputs/imemin.txt"
 #define DMEMIN "./inputs/dmemin.txt"
+#define IRQ2IN "./inputs/irq2in.txt"
+#define DISKIN "./inputs/diskin.txt"
 
 #define DMEMOUT "./outputs/dmemout.txt"
+#define DISKOUT "./outputs/diskout.txt"
 
 typedef enum {
 	ADD,
@@ -74,7 +78,7 @@ typedef enum {
 	RESERVED,
 	TIMERENABLE,
 	TIMERCURRENT,
-	TIMEMAX,
+	TIMERMAX,
 	DISKCMD,
 	DISKSECTOR,
     DISKBUFFER,
