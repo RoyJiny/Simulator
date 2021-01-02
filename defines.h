@@ -20,6 +20,15 @@
 #define DMEMOUT "./outputs/dmemout.txt"
 #define DISKOUT "./outputs/diskout.txt"
 
+#define MONITORTXT "./outputs/monitor.txt"
+#define MONITORYUV "./outputs/monitor.yuv"
+
+#define REGOUT "./outputs/regout.txt"
+#define TRACE "./outputs/trace.txt"
+#define HWREGTRACE "./outputs/hwregtrace.txt"
+#define CYCLES "./outputs/cycles.txt"
+#define LEDS_FILE "./outputs/leds.txt"
+
 typedef enum {
 	ADD,
 	SUB,

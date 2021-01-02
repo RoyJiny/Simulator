@@ -1,4 +1,5 @@
 #include "executioner.h"
+#include "monitor_helper.h"
 #include "defines.h"
 #include <stdlib.h>
 #include <stdio.h>
@@ -69,7 +70,6 @@ int execute_cmd(OPcode opcode, int rd, int rs , int rt, int imm, int PC, char *s
             registers[rd] = memory[(registers[rt] + registers[rs]) % MEMORY_SIZE];
             break;
         case SW:
-        printf("storing %d in %d\n", registers[rd],(registers[rt] + registers[rs]) % MEMORY_SIZE);
             memory[(registers[rt] + registers[rs]) % MEMORY_SIZE] = registers[rd];
             break;
         case RETI:
@@ -78,10 +78,16 @@ int execute_cmd(OPcode opcode, int rd, int rs , int rt, int imm, int PC, char *s
             break;
         case IN:
             /*TODO: maybe check the index*/
-            registers[rd] = io_registers[registers[rs] + registers[rt]];
+            registers[rd] = registers[rs] + registers[rt] != MONITORCMD
+                ? io_registers[registers[rs] + registers[rt]]
+                : 0;
             break;
         case OUT:
-            io_registers[registers[rs] + registers[rt]] = registers[rd];
+            if (registers[rs] + registers[rt] == MONITORCMD && registers[rd] == 1) {
+                write_pixel(io_registers[MONITORX], io_registers[MONITORY], (unsigned char)io_registers[MONITORDATA]);
+            } else {
+                io_registers[registers[rs] + registers[rt]] = registers[rd];
+            }
             break;
         case HALT:
             printf("halt simulator, goodbye\n");

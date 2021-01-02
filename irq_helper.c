@@ -25,9 +25,10 @@ int get_next_irq2_cycle(){
 
 void increase_timer()
 {
-    if(io_registers[TIMERENABLE]) io_registers[TIMERCURRENT]++;
+    // if(io_registers[TIMERENABLE] == 1) io_registers[TIMERCURRENT]++;
+    io_registers[TIMERCURRENT]++;
     if((io_registers[TIMERCURRENT]) == io_registers[TIMERMAX]){
         io_registers[TIMERCURRENT] = 0;
         io_registers[IRQ0STATUS] = 1; /*trigger irq0*/
-    } 
+    }
 }
