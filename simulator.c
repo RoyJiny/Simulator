@@ -6,6 +6,7 @@
 #include <string.h>
 #include "irq_helper.h"
 #include "disk_helper.h"
+#include "tracer.h"
 
 #define IRQ_ON ((io_registers[IRQ0ENABLE] & io_registers[IRQ0STATUS]) |\
                (io_registers[IRQ1ENABLE] & io_registers[IRQ1STATUS]) |\
@@ -24,13 +25,15 @@ int disk_cycles = 0;
 void load_initial_memory()
 {
     FILE* memory_file = fopen(DMEMIN, "r");
-    char line[MEMORY_LINE_SIZE+1];
+    char line[MEMORY_LINE_SIZE+2];
     int *runner = memory;
-    while (fgets(line, MEMORY_LINE_SIZE+1, memory_file) != NULL)
+    int i = 0;
+    while (fgets(line, MEMORY_LINE_SIZE+2, memory_file) != NULL)
     {
         line[MEMORY_LINE_SIZE] = 0;
         *runner = (int)strtol(line, NULL, 16);
         runner++;
+        if (++i > MEMORY_SIZE) break;
     }
     fclose(memory_file);
 }
@@ -67,9 +70,11 @@ void run()
     int PC = 0;
     char should_exit = 0;
     int next_cycle_to_trigger_irq2 = get_next_irq2_cycle();
+    init_trace();
+    // TODO: check when to stop running, writing to disk on last line won't happen
     while (PC < last_code_line && !should_exit) {
-        if(io_registers[DISKCMD]){
-            if(!io_registers[DISKSTATUS]){
+        if(io_registers[DISKCMD] > 0){
+            if(io_registers[DISKSTATUS] == 0){
                 if(io_registers[DISKCMD] == 1) read_from_disk();
                 else write_to_disk();
                 disk_cycles = 0;
@@ -86,15 +91,22 @@ void run()
             PC = io_registers[IRQHANDLER];
         }
         else if (code[PC][2] == '1' || code[PC][3] == '1' || code[PC][4] == '1') { // uses immidiate
+            write_trace(PC, code[PC], code[PC+1]);
             PC = run_cmd(code[PC], code[PC+1], PC, &should_exit);
             increase_timer(); /*cmd with const takes extra cycle*/
             disk_cycles++;
         } else {
+            write_trace(PC, code[PC], NULL);
             PC = run_cmd(code[PC], NULL, PC, &should_exit);
         }
         increase_timer();
         disk_cycles++;
-        if(disk_cycles >= DISK_HANDLING_TIME) io_registers[DISKSTATUS] = 0;
+        if(disk_cycles >= DISK_HANDLING_TIME) {
+            io_registers[DISKSTATUS] = 0;
+            io_registers[DISKCMD] = 0;
+            io_registers[IRQ1STATUS] = 1;
+        }
     }
+    write_regout();
+    clean_trace();
 }
-
