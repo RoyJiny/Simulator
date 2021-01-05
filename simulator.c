@@ -40,6 +40,17 @@ void load_initial_memory()
     fclose(memory_file);
 }
 
+void extend_imm(char *imm, char *res)
+{
+    char extention = '0';
+    if (imm[0] == 'F') {
+        extention = 'F';
+    }
+    for (int i=0; i<8; i++) {
+        res[i] = i <= 2 ? extention : *(imm+i-3);
+    }
+}
+
 void store_memory()
 {
     FILE* memory_file = fopen(DMEMOUT, "w");
@@ -73,6 +84,7 @@ void run()
     char should_exit = 0;
     int next_cycle_to_trigger_irq2 = get_next_irq2_cycle();
     init_trace();
+    char extended_imm[9];
     // TODO: check when to stop running, writing to disk on last line won't happen
     while (PC < last_code_line && !should_exit) {
         increase_timer();
@@ -106,12 +118,13 @@ void run()
             PC = io_registers[IRQHANDLER];
         }
         else if (code[PC][2] == '1' || code[PC][3] == '1' || code[PC][4] == '1') { // uses immidiate
-            write_trace(PC, code[PC], code[PC+1]);
+            extend_imm(code[PC+1], extended_imm);
+            write_trace(PC, code[PC], extended_imm);
             increase_timer(); /*cmd with const takes extra cycle*/
             disk_cycles++;
             cycles++;
             cmd_counter++;
-            PC = run_cmd(code[PC], code[PC+1], PC, cycles ,&should_exit);
+            PC = run_cmd(code[PC], extended_imm, PC, cycles ,&should_exit);
         } else {
             write_trace(PC, code[PC], NULL);
             cmd_counter++;
@@ -122,4 +135,6 @@ void run()
     write_regout();
     write_cycles(cycles, cmd_counter);
     clean_trace();
+
+    compareFiles("./outputs/trace.txt", "./example/trace.txt");
 }

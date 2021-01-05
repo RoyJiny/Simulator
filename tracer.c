@@ -67,23 +67,18 @@ void write_cycles(int cycles, int nof_cmd)
 
 void write_trace(int PC, char *inst, char *imm)
 {
-   // char line[3 + 5 + 16*8 + 17 + 1];
-    //sprintf(line, "%03X %s ", PC, inst);
     fprintf(trace, "%03X %s ", PC, inst);
     int *runner = registers;
     int i = 0;
     for(; runner < registers + 16; runner++){
         if (i == 1 && imm != NULL) {
-            //sprintf(&line[10 + i*9], "000%s ", imm);
-            fprintf(trace, "000%s ", imm);
+            fprintf(trace, "%s", imm);
         } else {
-            //sprintf(&line[10 + i*9], "%08X ", *runner);
-            fprintf(trace, "%08X ", *runner);
+            fprintf(trace, "%08X", *runner);
         }
+        if (i != 15) fprintf(trace, " ");
         i++;
     }
-    //fputs(line, trace);
-    //fputs("\n", trace);
     fprintf(trace, "\n");
 }
 
@@ -103,6 +98,40 @@ void write_leds(int cycle)
     char line[11 + 1 + 8 + 1]; //int takes at most 10 decimal digits
     sprintf(line, "%d %08X\n", cycle, io_registers[LEDS]);
     fputs(line, leds_trace);
+}
+
+void
+compareFiles(char *our_file, char *example_file)
+{
+    printf("compering our file: '%s', with the example file: '%s'\n", our_file, example_file);
+    char line1[200];
+    char line2[200];
+    FILE *our = fopen(our_file, "r");
+    FILE *example = fopen(example_file, "r");
+    FILE *log = fopen("./example/log.txt", "w");
+    int done = 0;
+    int line_num = 1;
+    do {
+        fprintf(log, "line: %d - ", line_num);
+        if (fgets(line1, 200, our) == NULL) {
+            fprintf(log, "\nOur file: EOF\n");
+            done |= 1;
+        }
+        if (fgets(line2, 200, example) == NULL) {
+            fprintf(log, "\nExample file: EOF\n");
+            done |= 2;
+        }
+        if (done == 0 && strcmp(line1, line2) != 0) {
+            fprintf(log, "\nOur File:     %s", line1);
+            fprintf(log, "Example File: %s\n", line2);
+        } else {
+            fprintf(log, "equal\n");
+        }
+        line_num++;
+    } while (done < 3);
+    fclose(our);
+    fclose(example);
+    fclose(log);
 }
 
 void clean_trace()

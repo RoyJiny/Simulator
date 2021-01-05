@@ -38,4 +38,7 @@ void write_hwreg(int cycle, int reg, char read);
 */
 void clean_trace();
 
+void
+compareFiles(char *our_file, char *example_file);
+
 #endif
