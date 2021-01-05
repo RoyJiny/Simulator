@@ -1,5 +1,6 @@
 #include "executioner.h"
 #include "monitor_helper.h"
+#include "tracer.h"
 #include "defines.h"
 #include <stdlib.h>
 #include <stdio.h>
@@ -9,7 +10,7 @@ extern int io_registers[22];
 extern int memory[MEMORY_SIZE];
 extern char handling_irq_flag;
 
-int execute_cmd(OPcode opcode, int rd, int rs , int rt, int imm, int PC, char *should_exit)
+int execute_cmd(OPcode opcode, int rd, int rs , int rt, int imm, int PC, int cycle, char *should_exit)
 {
     int mask;
     registers[IMM] = imm;
@@ -81,13 +82,19 @@ int execute_cmd(OPcode opcode, int rd, int rs , int rt, int imm, int PC, char *s
             registers[rd] = registers[rs] + registers[rt] != MONITORCMD
                 ? io_registers[registers[rs] + registers[rt]]
                 : 0;
+            write_hwreg(cycle, registers[rs] + registers[rt], 1);
             break;
         case OUT:
             if (registers[rs] + registers[rt] == MONITORCMD && registers[rd] == 1) {
                 write_pixel(io_registers[MONITORX], io_registers[MONITORY], (unsigned char)io_registers[MONITORDATA]);
             } else {
+                /*some led have changed*/
+                if(registers[rs] + registers[rt] == LEDS && io_registers[LEDS] != registers[rd]){
+                    write_leds(cycle);
+                }
                 io_registers[registers[rs] + registers[rt]] = registers[rd];
             }
+            write_hwreg(cycle, registers[rs] + registers[rt], 0);
             break;
         case HALT:
             printf("halt simulator, goodbye\n");
@@ -100,7 +107,7 @@ int execute_cmd(OPcode opcode, int rd, int rs , int rt, int imm, int PC, char *s
     return PC & PC_MASK;
 }
 
-int run_cmd(char* cmd, char* immidiate, int PC, char *should_exit)
+int run_cmd(char* cmd, char* immidiate, int PC, int cycle ,char *should_exit)
 {
     int command = (int)strtol(cmd, NULL, 16);
     int imm = 0;
@@ -116,6 +123,7 @@ int run_cmd(char* cmd, char* immidiate, int PC, char *should_exit)
         command & RT_MASK,
         imm,
         PC,
+        cycle,
         should_exit
     );
 }

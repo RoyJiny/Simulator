@@ -10,6 +10,6 @@
 * @param PC: command PC.
 * @ret return updated PC.
 */
-int run_cmd(char* cmd, char* immidiate, int PC, char *should_exit);
+int run_cmd(char* cmd, char* immidiate, int PC, int cycle,char *should_exit);
 
 #endif
