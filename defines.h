@@ -51,7 +51,8 @@ typedef enum {
 	RETI,
 	IN,
 	OUT,
-	HALT
+	HALT,
+	OP_COUNT
 } OPcode;
 
 typedef enum {
@@ -70,7 +71,8 @@ typedef enum {
 	GP,
 	SP,
 	FP,
-	RA
+	RA,
+	REG_COUNT
 } Register;
 
 typedef enum {

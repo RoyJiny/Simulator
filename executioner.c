@@ -10,40 +10,48 @@ extern int io_registers[22];
 extern int memory[MEMORY_SIZE];
 extern char handling_irq_flag;
 
-int execute_cmd(OPcode opcode, int rd, int rs , int rt, int imm, int PC, int cycle, char *should_exit)
+int execute_cmd(OPcode opcode, int rd, int rs , int rt, int PC, int cycle, char *should_exit)
 {
     int mask;
-    registers[IMM] = imm;
     PC++;
+    if (rd >= REG_COUNT || rt >= REG_COUNT || rs >= REG_COUNT) {
+        printf("Illegal register value\n");
+        return PC & PC_MASK;
+    }
+    if (rd < 0 || rt < 0 || rs < 0) {
+        printf("Illegal register value\n");
+        return PC & PC_MASK;
+    }
+    
     switch(opcode){
         case ADD:
-            registers[rd] = registers[rs] + registers[rt];
+            if (rd > 0) registers[rd] = registers[rs] + registers[rt];
             break;
 	    case SUB:
-            registers[rd] = registers[rs] - registers[rt];
+            if (rd > 0) registers[rd] = registers[rs] - registers[rt];
             break;
         case AND:
-            registers[rd] = registers[rs] & registers[rt];
+            if (rd > 0) registers[rd] = registers[rs] & registers[rt];
             break;
         case OR:
-            registers[rd] = registers[rs] | registers[rt];
+            if (rd > 0) registers[rd] = registers[rs] | registers[rt];
             break;
         case XOR:
-            registers[rd] = registers[rs] ^ registers[rt];
+            if (rd > 0) registers[rd] = registers[rs] ^ registers[rt];
             break;
         case MUL:
-            registers[rd] = registers[rs] * registers[rt];
+            if (rd > 0) registers[rd] = registers[rs] * registers[rt];
             break;
         case SLL:
-            registers[rd] = registers[rs] << registers[rt];
+            if (rd > 0) registers[rd] = registers[rs] << registers[rt];
             break;
         case SRA:
-            registers[rd] = registers[rs] >> registers[rt];
+            if (rd > 0) registers[rd] = registers[rs] >> registers[rt];
             break;
         case SRL:
             mask = 0xFFFFFFFF << (32-registers[rt]);
             mask = ~mask;
-            registers[rd] = (registers[rs] >> registers[rt]) & mask;
+            if (rd > 0) registers[rd] = (registers[rs] >> registers[rt]) & mask;
             break;
         case BEQ:
             if (registers[rs] == registers[rt]) PC = registers[rd];
@@ -68,7 +76,7 @@ int execute_cmd(OPcode opcode, int rd, int rs , int rt, int imm, int PC, int cyc
             PC = registers[rd];
             break;
         case LW:
-            registers[rd] = memory[(registers[rt] + registers[rs]) % MEMORY_SIZE];
+            if (rd > 0) registers[rd] = memory[(registers[rt] + registers[rs]) % MEMORY_SIZE];
             break;
         case SW:
             memory[(registers[rt] + registers[rs]) % MEMORY_SIZE] = registers[rd];
@@ -79,10 +87,12 @@ int execute_cmd(OPcode opcode, int rd, int rs , int rt, int imm, int PC, int cyc
             break;
         case IN:
             /*TODO: maybe check the index*/
-            registers[rd] = registers[rs] + registers[rt] != MONITORCMD
-                ? io_registers[registers[rs] + registers[rt]]
-                : 0;
-            write_hwreg(cycle, registers[rs] + registers[rt], 1);
+            if (rd > 0) {
+                registers[rd] = registers[rs] + registers[rt] != MONITORCMD
+                    ? io_registers[registers[rs] + registers[rt]]
+                    : 0;
+                write_hwreg(cycle, registers[rs] + registers[rt], 1);
+            }
             break;
         case OUT:
             if (registers[rs] + registers[rt] == MONITORCMD && registers[rd] == 1) {
@@ -101,19 +111,33 @@ int execute_cmd(OPcode opcode, int rd, int rs , int rt, int imm, int PC, int cyc
             *should_exit = 1;
             break;
         default:
-            printf("default opcode\n");
+            printf("Illegal opcode\n");
             break;
     }
     return PC & PC_MASK;
 }
 
+void write_imm_to_reg(char *immidiate)
+{
+    static int sign_mask = 0x80000; // check sign bit
+    static int negative_mask = 0xFFF00000;
+    static int positive_mask = 0x00000000;
+    int mask;
+    int imm;
+    if (immidiate != NULL) {
+        imm = (int)strtol(immidiate, NULL, 16);
+        mask = (imm & sign_mask) > 0 ? negative_mask : positive_mask;
+        imm = imm | mask;
+        registers[IMM] = imm;
+    }
+}
+
 int run_cmd(char* cmd, char* immidiate, int PC, int cycle ,char *should_exit)
 {
     int command = (int)strtol(cmd, NULL, 16);
-    int imm = 0;
+    
     // printf("cmd: %s\nimm: %s\nPC: %d\n\n", cmd, immidiate, PC);
     if (immidiate != NULL) {
-        imm = (int)strtol(immidiate, NULL, 16);
         PC ++;
     }
     return execute_cmd(
@@ -121,7 +145,6 @@ int run_cmd(char* cmd, char* immidiate, int PC, int cycle ,char *should_exit)
         (command & RD_MASK) >> 8,
         (command & RS_MASK) >> 4,
         command & RT_MASK,
-        imm,
         PC,
         cycle,
         should_exit
