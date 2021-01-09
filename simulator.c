@@ -74,7 +74,6 @@ void load_code()
     fclose(code_file);
 }
 
-
 void run()
 {
     int PC = 0;
@@ -110,7 +109,7 @@ void run()
             io_registers[IRQRETURN] = PC;
             PC = io_registers[IRQHANDLER];
         }
-        
+
         if (code[PC][2] == '1' || code[PC][3] == '1' || code[PC][4] == '1') { // uses immidiate
             //extend_imm(code[PC+1], extended_imm);
             write_imm_to_reg(code[PC+1]);
