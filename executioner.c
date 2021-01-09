@@ -89,7 +89,7 @@ int execute_cmd(OPcode opcode, int rd, int rs , int rt, int PC, int cycle, char 
             /*TODO: maybe check the index*/
             if (rd > 0) {
                 registers[rd] = registers[rs] + registers[rt] != MONITORCMD
-                    ? io_registers[registers[rs] + registers[rt]]
+                    ? io_registers[(registers[rs] + registers[rt]) % IO_REG_COUNT]
                     : 0;
                 write_hwreg(cycle, registers[rs] + registers[rt], 1);
             }
@@ -102,8 +102,8 @@ int execute_cmd(OPcode opcode, int rd, int rs , int rt, int PC, int cycle, char 
                 if(registers[rs] + registers[rt] == LEDS && io_registers[LEDS] != registers[rd]){
                     write_leds(cycle);
                 }
-                io_registers[registers[rs] + registers[rt]] = registers[rd];
             }
+            io_registers[(registers[rs] + registers[rt]) % IO_REG_COUNT] = registers[rd];
             write_hwreg(cycle, registers[rs] + registers[rt], 0);
             break;
         case HALT:
