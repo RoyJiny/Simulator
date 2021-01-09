@@ -109,7 +109,11 @@ void run()
             io_registers[IRQRETURN] = PC;
             PC = io_registers[IRQHANDLER];
         }
+<<<<<<< HEAD
 
+=======
+        
+>>>>>>> 940869fff6cf5c85067cdc937e3e9536d17ad612
         if (code[PC][2] == '1' || code[PC][3] == '1' || code[PC][4] == '1') { // uses immidiate
             //extend_imm(code[PC+1], extended_imm);
             write_imm_to_reg(code[PC+1]);
