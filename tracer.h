@@ -16,7 +16,8 @@ void write_regout();
 /*
 * write trace of commands in trace.txt file
 */
-void write_trace(int PC, char *inst, char *imm);
+void write_trace(int PC, char *inst);
+void write_trace_with_cycles(int cycle, int PC, char *inst);
 
 /*
 * write total command count and total execution time (in cycles).

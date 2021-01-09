@@ -42,10 +42,7 @@ void load_initial_memory()
 
 void extend_imm(char *imm, char *res)
 {
-    char extention = '0';
-    if (imm[0] == 'F') {
-        extention = 'F';
-    }
+    char extention = imm[0] >= '8' ? 'F' :'0';
     for (int i=0; i<8; i++) {
         res[i] = i <= 2 ? extention : *(imm+i-3);
     }
@@ -84,13 +81,9 @@ void run()
     char should_exit = 0;
     int next_cycle_to_trigger_irq2 = get_next_irq2_cycle();
     init_trace();
-    char extended_imm[9];
+    // char extended_imm[9];
     // TODO: check when to stop running, writing to disk on last line won't happen
     while (PC < last_code_line && !should_exit) {
-        increase_timer();
-        cycles++;
-        disk_cycles++;
-
         if(io_registers[DISKSTATUS] == 1 && disk_cycles >= DISK_HANDLING_TIME - 1) {
             io_registers[DISKSTATUS] = 0;
             io_registers[DISKCMD] = 0;
@@ -107,7 +100,7 @@ void run()
             }
         }
 
-        if(next_cycle_to_trigger_irq2 > 0 && io_registers[TIMERCURRENT] >= next_cycle_to_trigger_irq2){
+        if(next_cycle_to_trigger_irq2 > 0 && io_registers[TIMERCURRENT] > next_cycle_to_trigger_irq2){
             io_registers[IRQ2STATUS] = 1; /*trigger irq2*/
             next_cycle_to_trigger_irq2 = get_next_irq2_cycle();
         }
@@ -117,19 +110,27 @@ void run()
             io_registers[IRQRETURN] = PC;
             PC = io_registers[IRQHANDLER];
         }
-        else if (code[PC][2] == '1' || code[PC][3] == '1' || code[PC][4] == '1') { // uses immidiate
-            extend_imm(code[PC+1], extended_imm);
-            write_trace(PC, code[PC], extended_imm);
+        
+        if (code[PC][2] == '1' || code[PC][3] == '1' || code[PC][4] == '1') { // uses immidiate
+            //extend_imm(code[PC+1], extended_imm);
+            write_imm_to_reg(code[PC+1]);
+            // write_trace(PC, code[PC]);
+            write_trace_with_cycles(cycles, PC, code[PC]);
             increase_timer(); /*cmd with const takes extra cycle*/
             disk_cycles++;
             cycles++;
             cmd_counter++;
-            PC = run_cmd(code[PC], extended_imm, PC, cycles ,&should_exit);
+            PC = run_cmd(code[PC], code[PC+1], PC, cycles ,&should_exit);
         } else {
-            write_trace(PC, code[PC], NULL);
+            // write_trace(PC, code[PC]);
+            write_trace_with_cycles(cycles, PC, code[PC]);
             cmd_counter++;
             PC = run_cmd(code[PC], NULL, PC, cycles,&should_exit);
         }
+
+        increase_timer();
+        cycles++;
+        disk_cycles++;
 
     }
     write_regout();

@@ -65,17 +65,26 @@ void write_cycles(int cycles, int nof_cmd)
     fclose(cycles_file);
 }
 
-void write_trace(int PC, char *inst, char *imm)
+void write_trace(int PC, char *inst)
 {
     fprintf(trace, "%03X %s ", PC, inst);
     int *runner = registers;
     int i = 0;
     for(; runner < registers + 16; runner++){
-        if (i == 1 && imm != NULL) {
-            fprintf(trace, "%s", imm);
-        } else {
-            fprintf(trace, "%08X", *runner);
-        }
+        fprintf(trace, "%08X", *runner);
+        if (i != 15) fprintf(trace, " ");
+        i++;
+    }
+    fprintf(trace, "\n");
+}
+
+void write_trace_with_cycles(int cycle, int PC, char *inst)
+{
+    fprintf(trace, "CYCLE %d %03X %s ", cycle, PC, inst);
+    int *runner = registers;
+    int i = 0;
+    for(; runner < registers + 16; runner++){
+        fprintf(trace, "%08X", *runner);
         if (i != 15) fprintf(trace, " ");
         i++;
     }
