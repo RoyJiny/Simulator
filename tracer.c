@@ -112,6 +112,7 @@ void write_leds(int cycle)
 void
 compareFiles(char *our_file, char *example_file)
 {
+    int count;
     printf("compering our file: '%s', with the example file: '%s'\n", our_file, example_file);
     char line1[200];
     char line2[200];
@@ -131,6 +132,7 @@ compareFiles(char *our_file, char *example_file)
             done |= 2;
         }
         if (done == 0 && strcmp(line1, line2) != 0) {
+            count ++;
             fprintf(log, "\nOur File:     %s", line1);
             fprintf(log, "Example File: %s\n", line2);
         } else {
@@ -138,6 +140,7 @@ compareFiles(char *our_file, char *example_file)
         }
         line_num++;
     } while (done < 3);
+    fprintf(log, "we have %d different lines\n", count);
     fclose(our);
     fclose(example);
     fclose(log);

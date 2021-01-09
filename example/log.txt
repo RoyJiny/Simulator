@@ -877,3 +877,4 @@ Our file: EOF
 
 Example file: EOF
 equal
+we have 0 different lines

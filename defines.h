@@ -97,7 +97,8 @@ typedef enum {
     MONITORCMD,
     MONITORX,
     MONITORY,
-    MONITORDATA
+    MONITORDATA,
+	IO_REG_COUNT
 } IO_Register;
 
 #endif

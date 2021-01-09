@@ -17,14 +17,14 @@ void write_monitor_data()
     FILE* monitor_txt = fopen(MONITORTXT, "w");
     FILE* monitor_yuv = fopen(MONITORYUV, "w");
     char line[3];
-    for(int x=0; x<MONITOR_WIDTH; x++){
-        for(int y=0; y<MONITOR_HEIGHT; y++){
-            // txt:
+    for(int y=0; y<MONITOR_HEIGHT; y++){
+        for(int x=0; x<MONITOR_WIDTH; x++){
             sprintf(line, "%02X", monitor[x][y]);
+            // txt:
             fputs(line, monitor_txt);
             fputs("\n", monitor_txt);
             //yuv:
-            fwrite(line, sizeof(unsigned char)*2, 1, monitor_yuv);
+            fwrite(&(monitor[x][y]), sizeof(unsigned char), 1, monitor_yuv);
         }
     }
     fclose(monitor_txt);

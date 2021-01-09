@@ -114,16 +114,14 @@ void run()
         if (code[PC][2] == '1' || code[PC][3] == '1' || code[PC][4] == '1') { // uses immidiate
             //extend_imm(code[PC+1], extended_imm);
             write_imm_to_reg(code[PC+1]);
-            // write_trace(PC, code[PC]);
-            write_trace_with_cycles(cycles, PC, code[PC]);
+            write_trace(PC, code[PC]);
             increase_timer(); /*cmd with const takes extra cycle*/
             disk_cycles++;
             cycles++;
             cmd_counter++;
             PC = run_cmd(code[PC], code[PC+1], PC, cycles ,&should_exit);
         } else {
-            // write_trace(PC, code[PC]);
-            write_trace_with_cycles(cycles, PC, code[PC]);
+            write_trace(PC, code[PC]);
             cmd_counter++;
             PC = run_cmd(code[PC], NULL, PC, cycles,&should_exit);
         }
@@ -136,6 +134,4 @@ void run()
     write_regout();
     write_cycles(cycles, cmd_counter);
     clean_trace();
-
-    compareFiles("./outputs/trace.txt", "./example/trace.txt");
 }
