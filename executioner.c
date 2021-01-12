@@ -13,6 +13,7 @@ extern char handling_irq_flag;
 int execute_cmd(OPcode opcode, int rd, int rs , int rt, int PC, int cycle, char *should_exit)
 {
     int mask;
+    int temp_reg;
     PC++;
     if (rd >= REG_COUNT || rt >= REG_COUNT || rs >= REG_COUNT) {
         printf("Illegal register value\n");
@@ -87,12 +88,13 @@ int execute_cmd(OPcode opcode, int rd, int rs , int rt, int PC, int cycle, char 
             break;
         case IN:
             /*TODO: maybe check the index*/
+            temp_reg = (registers[rs] + registers[rt]) % IO_REG_COUNT;
             if (rd > 0) {
                 registers[rd] = registers[rs] + registers[rt] != MONITORCMD
                     ? io_registers[(registers[rs] + registers[rt]) % IO_REG_COUNT]
                     : 0;
-                write_hwreg(cycle, registers[rs] + registers[rt], 1);
             }
+            write_hwreg(cycle, temp_reg, 1);
             break;
         case OUT:
             if (registers[rs] + registers[rt] == MONITORCMD && registers[rd] == 1) {

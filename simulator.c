@@ -38,6 +38,7 @@ void load_initial_memory()
         if (++i > MEMORY_SIZE) break;
     }
     fclose(memory_file);
+    printf("memory: %d, %d, %d\n", memory[1023], memory[1024], memory[1025]);
 }
 
 void extend_imm(char *imm, char *res)
